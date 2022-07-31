@@ -1,18 +1,7 @@
 import { useState } from 'react'
-
-
-const Names = ({ entrys, search }) => {
-  return(
-	  <ul>{entrys.filter((entry) => entry.name.toLowerCase().includes(search.toLowerCase())).map((entry) => <Name entry={entry} key={entry.name} />)}</ul>
-  )
-}
-
-const Name = ({entry}) => {
-				return(
-				<li>{entry.name}: {entry.number}</li>
-				)
-}
-
+import Search from './compoments/Search.js'
+import Form from './compoments/Form.js'
+import Names from './compoments/Names.js'
 
 const App = () => {
   const [persons, setPersons] = useState([
@@ -56,19 +45,9 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
-			<input value={newSearch} onChange={handleSearchChange} />
+			<Search search={newSearch} handler={handleSearchChange} />
 			<h2>add a new entry</h2>
-      <form onSubmit={addName}>
-        <div>
-          name: <input value={newName} onChange={handleNameChange}/>
-        </div>
-				<div>
-				  number: <input value={newNumber} onChange={handleNumberChange} />
-				</div>
-        <div>
-          <button type="submit">add</button>
-        </div>
-      </form>
+			<Form submitHandler={addName} nameState={newName} nameHandler={handleNameChange} numberState={newNumber} numberHandler={handleNumberChange} /> 
       <h2>Numbers</h2>
      <Names entrys={persons} search={newSearch} /> 
     </div>
