@@ -1,8 +1,9 @@
 import { useState } from 'react'
 
-const Names = ({ entrys }) => {
+
+const Names = ({ entrys, search }) => {
   return(
-				<ul>{entrys.map((entry) => <Name entry={entry} key={entry.name} />)}</ul>
+	  <ul>{entrys.filter((entry) => entry.name.toLowerCase().includes(search.toLowerCase())).map((entry) => <Name entry={entry} key={entry.name} />)}</ul>
   )
 }
 
@@ -23,7 +24,6 @@ const App = () => {
   ])
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
-	const [filtered, setFiltered] = useState(persons)
 	const [newSearch, setNewSearch] = useState('')
 
   const addName = (event) =>{
@@ -39,8 +39,6 @@ const App = () => {
     setPersons(persons.concat(nameObject))
     setNewName('')
 		setNewNumber('')
-    setFiltered(persons.concat(nameObject))
-		setNewSearch('')
   }
   
   const handleNameChange = (event) =>{
@@ -52,13 +50,6 @@ const App = () => {
 
   const handleSearchChange = (event) =>{
     setNewSearch(event.target.value)
-
-		if(!event.target.value){
-      setFiltered(persons)
-			return 0
-		}
-    setFiltered(persons.filter((person) => person.name.toLowerCase().includes(newSearch.toLowerCase())))
-
 	}
 
 
@@ -79,7 +70,7 @@ const App = () => {
         </div>
       </form>
       <h2>Numbers</h2>
-     <Names entrys={filtered} /> 
+     <Names entrys={persons} search={newSearch} /> 
     </div>
   )
 }
