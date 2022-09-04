@@ -1,30 +1,65 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
-import Search from './compoments/Search.js'
-import Form from './compoments/Form.js'
-import Names from './compoments/Names.js'
+import Search from './components/Search.js'
+import Form from './components/Form.js'
+import Names from './components/Names.js'
+import Notificationt from './components/Notification.js'
+import personsService from './services/persons.js'
 
 const App = () => {
   const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
 	const [newSearch, setNewSearch] = useState('')
+	const [error, setNewError] = useState(null)
+  const [succsess, setNewSuccess] = useState(null)
 
   const addName = (event) =>{
     event.preventDefault()
-    if(persons.findIndex( element => element.name === newName) !== -1){
-      alert(`${newName} is alrady added to phonebook`)
-			return 0
-		}     
+		const index = persons.findIndex( element => element.name === newName)
+
+
+    if(index !== -1){
+			if(persons[index].number === newNumber){
+				alert(`${newName} is alrady added to phonebook`)
+				return 0
+			}
+			if(window.confirm(`${newName} is alrady in the phonebook, repalace the old number?`)){
+				var changedPerson = persons[index]
+				changedPerson.number = newNumber
+				personsService.update(index+1, changedPerson)
+				.then(changedNode => {
+					setPersons(persons.map(person => person.id === changedNode.id ? changedNode : person))
+				})
+			}
+			setNewName('')
+			setNewNumber('')
+		}else{
+
     const nameObject = {
       name: newName,
-			number: newNumber
+			number: newNumber,
+			id: persons.length + 1
     }
+
     setPersons(persons.concat(nameObject))
     setNewName('')
 		setNewNumber('')
+		personsService.create(nameObject)
+			  .then(() => {setNewSuccess(`${nameObject.name} added ot phonebook.`)
+					        setTimeout(() => {setNewSuccess(null)}, 5000)
+				})
+		}
   }
-  
+
+	const handleRemove = (id) =>{
+		if(window.confirm(`Delete ${persons[id-1].name} ?`)){
+			personsService.remove(id).catch(((error) => {setNewError(`Error: ${persons[id-1].name} was alrady removed!`)
+				setTimeout(() => {setNewError(null)}, 5000)
+			}))
+			setPersons(persons.filter((person) => person.id !== id))
+		}
+	}
+
   const handleNameChange = (event) =>{
     setNewName(event.target.value)
   }
@@ -38,9 +73,7 @@ const App = () => {
 
 	useEffect(() => {
 	console.log('effect')
-	axios
-	  .get('http://localhost:3001/persons')
-	  .then(response => {
+	  personsService.getAll().then(response => {
 		console.log('promise fulfilled')
 		setPersons(response.data)
 		})
@@ -48,12 +81,14 @@ const App = () => {
 
   return (
     <div>
+		  <Notificationt message={error} type='error'/>
+		  <Notificationt message={succsess} type='succsess'/>
       <h2>Phonebook</h2>
 			<Search search={newSearch} handler={handleSearchChange} />
 			<h2>add a new entry</h2>
 			<Form submitHandler={addName} nameState={newName} nameHandler={handleNameChange} numberState={newNumber} numberHandler={handleNumberChange} /> 
       <h2>Numbers</h2>
-     <Names entrys={persons} search={newSearch} /> 
+     <Names  entrys={persons} search={newSearch} handleRemove={handleRemove}/> 
     </div>
   )
 }
